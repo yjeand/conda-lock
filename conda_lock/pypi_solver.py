@@ -178,6 +178,7 @@ def solve_pypi(
     conda_locked: Dict[str, src_parser.LockedDependency],
     python_version: str,
     platform: str,
+    no_pypi: bool = False,
     verbose: bool = False,
 ) -> Dict[str, src_parser.LockedDependency]:
     """
@@ -199,6 +200,8 @@ def solve_pypi(
         Version of Python in conda_locked
     platform :
         Target platform
+    no_pypi :
+        If True, pypi.org repository is not used
     verbose :
         Print chatter from solver
 
@@ -218,9 +221,9 @@ def solve_pypi(
         )
         for source in config.get("repositories", {}).items()
     ]
-
-    pypi = PyPiRepository()
-    pool = Pool(repositories=[*repos, pypi])
+    pypi = [] if no_pypi else [PyPiRepository()]
+    repos.extend(pypi)
+    pool = Pool(repositories=repos)
 
     installed = Repository()
     locked = Repository()

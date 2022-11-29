@@ -298,6 +298,7 @@ def make_lock_files(
     check_input_hash: bool = False,
     metadata_choices: AbstractSet[MetadataOption] = frozenset(),
     metadata_yamls: Sequence[pathlib.Path] = (),
+    no_pypi: bool = False,
 ) -> None:
     """
     Generate a lock file from the src files provided
@@ -413,6 +414,7 @@ def make_lock_files(
                 update_spec=update_spec,
                 metadata_choices=metadata_choices,
                 metadata_yamls=metadata_yamls,
+                no_pypi=no_pypi,
             )
 
             if "lock" in kinds:
@@ -698,6 +700,7 @@ def _solve_for_arch(
     platform: str,
     channels: List[Channel],
     update_spec: Optional[UpdateSpecification] = None,
+    no_pypi: bool = False,
 ) -> List[LockedDependency]:
     """
     Solve specification for a single platform
@@ -743,6 +746,7 @@ def _solve_for_arch(
             conda_locked={dep.name: dep for dep in conda_deps.values()},
             python_version=conda_deps["python"].version,
             platform=platform,
+            no_pypi=no_pypi,
         )
     else:
         pip_deps = {}
@@ -787,6 +791,7 @@ def create_lockfile_from_spec(
     update_spec: Optional[UpdateSpecification] = None,
     metadata_choices: AbstractSet[MetadataOption] = frozenset(),
     metadata_yamls: Sequence[pathlib.Path] = (),
+    no_pypi: bool = False,
 ) -> Lockfile:
     """
     Solve or update specification
@@ -804,6 +809,7 @@ def create_lockfile_from_spec(
             platform=platform,
             channels=[*spec.channels, virtual_package_channel],
             update_spec=update_spec,
+            no_pypi=no_pypi,
         )
 
         for dep in deps:
@@ -1050,6 +1056,7 @@ def run_lock(
     filter_categories: bool = False,
     metadata_choices: AbstractSet[MetadataOption] = frozenset(),
     metadata_yamls: Sequence[pathlib.Path] = (),
+    no_pypi: bool = False,
 ) -> None:
     if environment_files == DEFAULT_FILES:
         if lockfile_path.exists():
@@ -1096,6 +1103,7 @@ def run_lock(
         filter_categories=filter_categories,
         metadata_choices=metadata_choices,
         metadata_yamls=metadata_yamls,
+        no_pypi=no_pypi,
     )
 
 
@@ -1227,6 +1235,7 @@ TLogLevel = Union[
     type=str,
     help="Location of the lookup file containing Pypi package names to conda names.",
 )
+@click.option("--no-pypi", is_flag=True, help="Prevents usage of pypi.org.")
 @click.option(
     "--md",
     "--metadata",
@@ -1267,6 +1276,7 @@ def lock(
     pdb: bool,
     virtual_package_spec: Optional[pathlib.Path],
     pypi_to_conda_lookup_file: Optional[str],
+    no_pypi: bool,
     update: Optional[List[str]] = None,
     metadata_choices: Sequence[str] = (),
     metadata_yamls: Sequence[pathlib.Path] = (),
@@ -1339,6 +1349,7 @@ def lock(
         filter_categories=filter_categories,
         metadata_choices=metadata_enum_choices,
         metadata_yamls=metadata_yamls,
+        no_pypi=no_pypi,
     )
     if strip_auth:
         with tempfile.TemporaryDirectory() as tempdir:
